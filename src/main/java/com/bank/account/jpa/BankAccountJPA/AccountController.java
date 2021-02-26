@@ -46,42 +46,76 @@ public class AccountController {
 	public void updateUser(@RequestBody AccountUser user)
 	{
 		Optional<AccountUser> userUpdate = null;
-
-		if(user.getAccNum() != null)
+		System.out.println(user.getID());
+		if(user.getID() != null)
 		{
-			userUpdate = fetchDataService.findById(user.getAccNum());
+			userUpdate = fetchDataService.findById(user.getID());
+			if(userUpdate.isPresent())
+			{
+				System.out.print("get in here");
+				if(user.getAccNum() == null) {
+					user.setAccNum(userUpdate.get().getAccNum());
+				}
+				if(user.getfName() ==null)
+				{
+					user.setfName(userUpdate.get().getfName());
+				}
+				if(user.getlName() ==null)
+				{			
+					user.setlName(userUpdate.get().getlName());
+				}
+				if(user.getBalance() == 0)
+				{
+							user.setBalance(userUpdate.get().getBalance());
+				}
+				if(user.getEmail() == null)
+				{
+					user.setEmail(userUpdate.get().getEmail());
+				}
+				if(user.getPhoneNumber() ==0 )
+				{
+						user.setPhoneNumber(userUpdate.get().getPhoneNumber());
+				}
+			
+				
+				
+			}
+
+			fetchDataService.save(user);
 			
 		}	
-		if(userUpdate.isPresent())
-		{
-			if(user.getfName() == null)
-			{
-				user.setfName(userUpdate.get().getfName());
-			}
-			if(user.getlName() == null)
-			{
-				user.setlName(userUpdate.get().getlName());
-			}
-			if(user.getBalance() == 0)
-			{
-				user.setBalance(userUpdate.get().getBalance());
-			}
-			if(user.getEmail() == null)
-			{
-				user.setEmail(userUpdate.get().getEmail());
-			}
-			if(user.getPhoneNumber() == 0)
-			{
-				user.setPhoneNumber(userUpdate.get().getPhoneNumber());
-			}
-			fetchDataService.save(user);
-		}
-
-		
-	
-		
 		
 	}
+	
+	private AccountUser getUser(int Id)
+	{
+		
+		Optional<AccountUser> userUpdate = null;
+
+		AccountUser user = null;
+			userUpdate = fetchDataService.findById(Id);
+			if(userUpdate.isPresent())
+			{
+				user = new AccountUser();
+					user.setID(userUpdate.get().getID());
+					user.setAccNum(userUpdate.get().getAccNum());
+					user.setfName(userUpdate.get().getfName());
+
+					user.setlName(userUpdate.get().getlName());
+
+					user.setBalance(userUpdate.get().getBalance());
+		
+					user.setEmail(userUpdate.get().getEmail());
+		
+					user.setBalance(userUpdate.get().getBalance());
+					user.setPhoneNumber(userUpdate.get().getPhoneNumber());
+				
+			}
+
+			return user;	
+	}	
+		
+		
 	
 	@GetMapping("/FindUser/{AccNum}")
 	public Optional<AccountUser> findUser (@PathVariable("AccNum") int AccNum)
@@ -90,9 +124,34 @@ public class AccountController {
 	}
 	
 	@PostMapping("/DeleteUser/{AccNum}")
-	public void deleteUser  (@PathVariable("AccNum") int AccNum)
+	public void deleteUser (@PathVariable("AccNum") int AccNum)
 	{
 		fetchDataService.deleteById(AccNum);
 	}
 	
+	@PostMapping("/Withdraw/{id}/{Amount}")
+	public void withdraw(@PathVariable("id") int id, @PathVariable ("Amount") double Amount)
+	{
+			AccountUser user = getUser(id);
+			double tempValue;
+			if(user != null)
+			{
+				tempValue = user.getBalance() - Amount;
+				if(tempValue > 0)
+				{
+					user.setBalance(tempValue);;
+				}
+				fetchDataService.save(user);
+			}
+	}
+	@PostMapping("/Deposit/{id}/{Amount}")
+	public void deposit(@PathVariable("id") int id, @PathVariable ("Amount") double Amount)
+	{
+			AccountUser user = getUser(id);
+
+			user.setBalance(user.getBalance()+Amount);
+			
+			fetchDataService.save(user);
+		
+	}
 }
